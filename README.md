@@ -1,8 +1,20 @@
 # Food Delivery Platform — Microservices
 
+<!--toc:start-->
+
+- [Food Delivery Platform — Microservices](#food-delivery-platform-microservices)
+  - [Architecture](#architecture)
+  - [Quick Start](#quick-start)
+  - [Service Ports](#service-ports)
+  - [Prerequisites](#prerequisites)
+  - [TODOs After Scaffold](#todos-after-scaffold)
+  <!--toc:end-->
+
 Refactored from a Spring Boot monolith into four independently deployable microservices.
 
 ## Architecture
+
+![Architecture Diagram](./docs/archectecture_diagrams.png)
 
 ```
 Client
@@ -37,17 +49,17 @@ curl http://localhost:8080/actuator/health
 
 ## Service Ports
 
-| Service           | Local Port | Docker Name        |
-|-------------------|------------|--------------------|
-| API Gateway       | 8080       | api-gateway        |
-| Customer Service  | 8081       | customer-service   |
-| Restaurant Service| 8082       | restaurant-service |
-| Order Service     | 8083       | order-service      |
-| Delivery Service  | 8084       | delivery-service   |
-| Eureka Server     | 8761       | eureka-server      |
-| RabbitMQ          | 5672/15672 | rabbitmq           |
-| PostgreSQL        | 5432       | postgres           |
-| Redis             | 6379       | redis              |
+| Service            | Local Port | Docker Name        |
+| ------------------ | ---------- | ------------------ |
+| API Gateway        | 8080       | api-gateway        |
+| Customer Service   | 8081       | customer-service   |
+| Restaurant Service | 8082       | restaurant-service |
+| Order Service      | 8083       | order-service      |
+| Delivery Service   | 8084       | delivery-service   |
+| Eureka Server      | 8761       | eureka-server      |
+| RabbitMQ           | 5672/15672 | rabbitmq           |
+| PostgreSQL         | 5432       | postgres           |
+| Redis              | 6379       | redis              |
 
 ## Prerequisites
 
