@@ -17,6 +17,20 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: ${RABBIT_PASSWORD:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2000ms
+          multiplier: 2
+          max-interval: 10000ms
 
 eureka:
   client:
@@ -34,19 +48,3 @@ management:
 logging:
   level:
     com.fooddelivery: DEBUG
-
-spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: ${RABBIT_PASSWORD:guest}
-    listener:
-      simple:
-        default-requeue-rejected: false
-        retry:
-          enabled: true
-          max-attempts: 3
-          initial-interval: 2000ms
-          multiplier: 2
-          max-interval: 10000ms

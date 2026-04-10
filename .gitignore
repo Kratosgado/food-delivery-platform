@@ -12,6 +12,7 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+food-delivery-platform-monolith/
 
 # IDEs
 .idea/
@@ -22,6 +23,16 @@ buildNumber.properties
 .classpath
 .project
 .settings/
+**/.project
+
+# Eclipse
+**/.classpath
+**/.project
+**/.settings/
+**/.settings/
+**/.factorypath
+**/.apt_generated/
+**/.apt_generated_tests/
 
 # Logs
 *.log
