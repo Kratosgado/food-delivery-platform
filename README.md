@@ -16,6 +16,8 @@ Refactored from a Spring Boot monolith into four independently deployable micros
 
 ![Architecture Diagram](./docs/archectecture_diagrams.png)
 
+> **See Also**: [Monolith Architecture Analysis](./docs/monolith_architecture.md) for a detailed breakdown of the monolith's coupling points and migration strategy.
+
 ```
 Client
   │
