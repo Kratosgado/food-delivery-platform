@@ -1,15 +1,11 @@
 networks:
   food-delivery-net:
     driver: bridge
-
 volumes:
-  postgres-data:
-  rabbitmq-data:
-  redis-data:
-
+  postgres-data: null
+  rabbitmq-data: null
+  redis-data: null
 services:
-  # ── Infrastructure ──────────────────────────────────────────────────────────
-
   postgres:
     image: postgres:16-alpine
     container_name: food-delivery-postgres
@@ -17,16 +13,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    - postgres-data:/var/lib/postgresql/data
+    - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     networks:
-      - food-delivery-net
+    - food-delivery-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres
       interval: 10s
       timeout: 5s
       retries: 5
-
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: food-delivery-rabbitmq
@@ -34,82 +31,82 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-guest}
     ports:
-      - "5672:5672"
-      - "15672:15672" # management UI
+    - 5672:5672
+    - 15672:15672
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+    - rabbitmq-data:/var/lib/rabbitmq
     networks:
-      - food-delivery-net
+    - food-delivery-net
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 15s
       timeout: 10s
       retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: food-delivery-redis
     volumes:
-      - redis-data:/data
+    - redis-data:/data
     networks:
-      - food-delivery-net
+    - food-delivery-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+      - CMD
+      - redis-cli
+      - ping
       interval: 10s
       timeout: 5s
       retries: 3
-
-  # ── Service Discovery ───────────────────────────────────────────────────────
-
   eureka-server:
-    build: ./eureka-server
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile.dev
     container_name: eureka-server
     develop:
       watch:
-        - action: rebuild
-          path: ./eureka-server/src
-        - action: rebuild
-          path: ./eureka-server/pom.xml
+      - action: sync+restart
+        path: ./eureka-server/src
+        target: /app/src
+      - action: rebuild
+        path: ./eureka-server/pom.xml
     ports:
-      - "8761:8761"
+    - 8761:8761
     environment:
       SPRING_PROFILES_ACTIVE: docker
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8761/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8761/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
-  # ── Microservices ───────────────────────────────────────────────────────────
-
   customer-service:
-    build: ./customer-service
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile.dev
     container_name: customer-service
     develop:
       watch:
-        - action: rebuild
-          path: ./customer-service/src
-        - action: rebuild
-          path: ./customer-service/pom.xml
+      - action: sync+restart
+        path: ./customer-service/src
+        target: /app/src
+      - action: rebuild
+        path: ./customer-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,32 +114,32 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8081/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8081/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
   restaurant-service:
-    build: ./restaurant-service
+    build:
+      context: ./restaurant-service
+      dockerfile: Dockerfile.dev
     container_name: restaurant-service
     develop:
       watch:
-        - action: rebuild
-          path: ./restaurant-service/src
-        - action: rebuild
-          path: ./restaurant-service/pom.xml
+      - action: sync+restart
+        path: ./restaurant-service/src
+        target: /app/src
+      - action: rebuild
+        path: ./restaurant-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,33 +147,33 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8082/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8082/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
   order-service:
-    build: ./order-service
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile.dev
     container_name: order-service
     develop:
       watch:
-        - action: rebuild
-          path: ./order-service/src
-        - action: rebuild
-          path: ./order-service/pom.xml
+      - action: sync+restart
+        path: ./order-service/src
+        target: /app/src
+      - action: rebuild
+        path: ./order-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       postgres:
         condition: service_healthy
@@ -186,33 +183,33 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8083/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8083/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
   delivery-service:
-    build: ./delivery-service
+    build:
+      context: ./delivery-service
+      dockerfile: Dockerfile.dev
     container_name: delivery-service
     develop:
       watch:
-        - action: rebuild
-          path: ./delivery-service/src
-        - action: rebuild
-          path: ./delivery-service/pom.xml
+      - action: sync+restart
+        path: ./delivery-service/src
+        target: /app/src
+      - action: rebuild
+        path: ./delivery-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       postgres:
         condition: service_healthy
@@ -222,37 +219,35 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8084/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8084/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
-  # ── API Gateway ─────────────────────────────────────────────────────────────
-
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.dev
     container_name: api-gateway
     develop:
       watch:
-        - action: rebuild
-          path: ./api-gateway/src
-        - action: rebuild
-          path: ./api-gateway/pom.xml
+      - action: sync+restart
+        path: ./api-gateway/src
+        target: /app/src
+      - action: rebuild
+        path: ./api-gateway/pom.xml
     ports:
-      - "8080:8080"
+    - 8080:8080
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
       RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
     networks:
-      - food-delivery-net
+    - food-delivery-net
     depends_on:
       redis:
         condition: service_healthy
@@ -268,13 +263,11 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--spider",
-          "http://localhost:8080/actuator/health",
-        ]
+      - CMD
+      - wget
+      - --quiet
+      - --spider
+      - http://localhost:8080/actuator/health
       interval: 15s
       timeout: 10s
       retries: 5
