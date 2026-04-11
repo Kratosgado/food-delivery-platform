@@ -3,10 +3,10 @@ WORKDIR /app
 
 # Cache dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
+RUN mvn dependency:go-offline
 
 # Copy source
 COPY src ./src
 
 # Run spring boot with devtools
-CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.profiles=docker", "-q"]
+CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.profiles=docker"]
