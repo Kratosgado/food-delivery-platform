@@ -320,4 +320,3 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
