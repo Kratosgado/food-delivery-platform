@@ -1,11 +1,11 @@
 server:
-  port: 8084
+  port: ${DELIVERY_PORT}
 
 spring:
   application:
     name: delivery-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/delivery_db
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/delivery_db
     username: ${POSTGRES_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -18,8 +18,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   rabbitmq:
-    host: localhost
-    port: 5672
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
     username: ${RABBIT_USER}
     password: ${RABBIT_PASSWORD}
     listener:
@@ -35,7 +35,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka/
   instance:
     prefer-ip-address: true
 
