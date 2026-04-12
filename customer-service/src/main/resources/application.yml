@@ -6,8 +6,8 @@ spring:
     name: customer-service
   datasource:
     url: jdbc:postgresql://localhost:5432/customer_db
-    username: postgres
-    password: ${DB_PASSWORD:postgres}
+    username: ${POSTGRES_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

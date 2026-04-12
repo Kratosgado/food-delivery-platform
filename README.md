@@ -49,6 +49,10 @@ open http://localhost:15672       # RabbitMQ management (guest/guest)
 curl http://localhost:8080/actuator/health
 ```
 
+## Configuration
+
+See [Configuration Guide](./docs/config.md) for details on environment variables and configuration strategy.
+
 ## Service Ports
 
 | Service            | Local Port | Docker Name        |

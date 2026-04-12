@@ -1,8 +1,12 @@
 spring:
   datasource:
     url: jdbc:postgresql://postgres:5432/order_db
+    username: ${POSTGRES_USER}
+    password: ${DB_PASSWORD}
   rabbitmq:
     host: rabbitmq
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
 
 eureka:
   client:

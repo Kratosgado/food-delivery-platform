@@ -6,8 +6,8 @@ spring:
     name: delivery-service
   datasource:
     url: jdbc:postgresql://localhost:5432/delivery_db
-    username: postgres
-    password: ${DB_PASSWORD:postgres}
+    username: ${POSTGRES_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,8 +20,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    username: guest
-    password: ${RABBIT_PASSWORD:guest}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
     listener:
       simple:
         default-requeue-rejected: false

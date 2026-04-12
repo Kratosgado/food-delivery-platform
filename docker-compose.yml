@@ -14,8 +14,8 @@ services:
     image: postgres:16-alpine
     container_name: food-delivery-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -31,8 +31,8 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: food-delivery-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
     ports:
       - 5672:5672
       - 15672:15672
@@ -112,13 +112,13 @@ services:
           path: ./customer-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       eureka-server:
         condition: service_healthy
     healthcheck:
@@ -151,12 +151,12 @@ services:
           path: ./restaurant-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       eureka-server:
         condition: service_healthy
     healthcheck:
@@ -189,13 +189,14 @@ services:
           path: ./order-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       eureka-server:
@@ -230,13 +231,14 @@ services:
           path: ./delivery-service/pom.xml
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       eureka-server:
@@ -273,8 +275,7 @@ services:
       - 8080:8080
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - food-delivery-net
     depends_on:
