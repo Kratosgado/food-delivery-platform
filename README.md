@@ -5,6 +5,7 @@
 - [Food Delivery Platform — Microservices](#food-delivery-platform-microservices)
   - [Architecture](#architecture)
   - [Quick Start](#quick-start)
+  - [Configuration](#configuration)
   - [Service Ports](#service-ports)
   - [Prerequisites](#prerequisites)
   - [TODOs After Scaffold](#todos-after-scaffold)
