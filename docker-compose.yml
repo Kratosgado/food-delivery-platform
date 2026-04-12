@@ -14,8 +14,8 @@ services:
     image: postgres:16-alpine
     container_name: food-delivery-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:?ERROR- POSTGRES_USER environment variable is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?ERROR- POSTGRES_PASSWORD environment variable is required}
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -31,11 +31,11 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: food-delivery-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:?ERROR- RABBIT_USER environment variable is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:?ERROR- RABBIT_PASSWORD environment variable is required}
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "${RABBIT_PORT:-5672}:${RABBIT_PORT:-5672}"
+      - "${RABBIT_MGMT_PORT:-15672}:${RABBIT_MGMT_PORT:-15672}"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     networks:
@@ -49,6 +49,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: food-delivery-redis
+    ports:
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
     volumes:
       - redis-data:/data
     networks:
@@ -74,9 +76,10 @@ services:
         - action: rebuild
           path: ./eureka-server/pom.xml
     ports:
-      - 8761:8761
+      - "${EUREKA_PORT:-8761}:${EUREKA_PORT:-8761}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      EUREKA_PORT: ${EUREKA_PORT:-8761}
     networks:
       - food-delivery-net
     depends_on:
@@ -89,7 +92,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8761/actuator/health",
+          "http://localhost:${EUREKA_PORT:-8761}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
@@ -110,15 +113,18 @@ services:
           target: /app/src
         - action: rebuild
           path: ./customer-service/pom.xml
+    ports:
+      - "${CUSTOMER_PORT:-8081}:${CUSTOMER_PORT:-8081}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
+      CUSTOMER_PORT: ${CUSTOMER_PORT:-8081}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?ERROR- JWT_SECRET environment variable is required}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       eureka-server:
         condition: service_healthy
     healthcheck:
@@ -128,7 +134,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8081/actuator/health",
+          "http://localhost:${CUSTOMER_PORT:-8081}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
@@ -149,14 +155,17 @@ services:
           target: /app/src
         - action: rebuild
           path: ./restaurant-service/pom.xml
+    ports:
+      - "${RESTAURANT_PORT:-8082}:${RESTAURANT_PORT:-8082}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      RESTAURANT_PORT: ${RESTAURANT_PORT:-8082}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       eureka-server:
         condition: service_healthy
     healthcheck:
@@ -166,7 +175,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8082/actuator/health",
+          "http://localhost:${RESTAURANT_PORT:-8082}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
@@ -187,15 +196,19 @@ services:
           target: /app/src
         - action: rebuild
           path: ./order-service/pom.xml
+    ports:
+      - "${ORDER_PORT:-8083}:${ORDER_PORT:-8083}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      ORDER_PORT: ${ORDER_PORT:-8083}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       eureka-server:
@@ -207,7 +220,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8083/actuator/health",
+          "http://localhost:${ORDER_PORT:-8083}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
@@ -228,15 +241,19 @@ services:
           target: /app/src
         - action: rebuild
           path: ./delivery-service/pom.xml
+    ports:
+      - "${DELIVERY_PORT:-8084}:${DELIVERY_PORT:-8084}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      DELIVERY_PORT: ${DELIVERY_PORT:-8084}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
     networks:
       - food-delivery-net
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       eureka-server:
@@ -248,7 +265,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8084/actuator/health",
+          "http://localhost:${DELIVERY_PORT:-8084}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
@@ -270,11 +287,11 @@ services:
         - action: rebuild
           path: ./api-gateway/pom.xml
     ports:
-      - 8080:8080
+      - "${GATEWAY_PORT:-8080}:${GATEWAY_PORT:-8080}"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-changeme-super-secret-key-min-32-chars}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      GATEWAY_PORT: ${GATEWAY_PORT:-8080}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - food-delivery-net
     depends_on:
@@ -297,7 +314,7 @@ services:
           "wget",
           "--quiet",
           "--spider",
-          "http://localhost:8080/actuator/health",
+          "http://localhost:${GATEWAY_PORT:-8080}/actuator/health",
         ]
       interval: 15s
       timeout: 10s
