@@ -1,5 +1,35 @@
 # Configuration Guide
 
+<!--toc:start-->
+
+- [Configuration Guide](#configuration-guide)
+  - [Configuration Strategy](#configuration-strategy)
+    - [Environment Variable Usage](#environment-variable-usage)
+    - [Configuration Files](#configuration-files)
+  - [Production Profile (prod)](#production-profile-prod)
+    - [What It Optimizes](#what-it-optimizes)
+    - [How to Activate](#how-to-activate)
+    - [Service-Specific Notes](#service-specific-notes)
+  - [Environment Variables](#environment-variables)
+    - [Required Variables](#required-variables)
+    - [Variable Details](#variable-details)
+      - [PostgreSQL Configuration](#postgresql-configuration)
+      - [Eureka Configuration](#eureka-configuration)
+      - [RabbitMQ Configuration](#rabbitmq-configuration)
+      - [Redis Configuration](#redis-configuration)
+      - [JWT Configuration](#jwt-configuration)
+  - [Local Development](#local-development)
+    - [Using Docker Compose](#using-docker-compose)
+    - [Running Services Locally (without Docker)](#running-services-locally-without-docker)
+  - [Production Deployment](#production-deployment)
+    - [Example Production Environment Variables](#example-production-environment-variables)
+  - [Troubleshooting](#troubleshooting)
+    - [Application fails to start with "DB_PASSWORD" errors](#application-fails-to-start-with-dbpassword-errors)
+    - [JWT authentication fails](#jwt-authentication-fails)
+    - [Cannot connect to RabbitMQ](#cannot-connect-to-rabbitmq)
+  - [Related Documentation](#related-documentation)
+  <!--toc:end-->
+
 This document describes the configuration strategy for the Food Delivery Platform microservices, following the [12-Factor App](https://12factor.net/config) methodology.
 
 ## Configuration Strategy
@@ -18,13 +48,13 @@ All services use environment variables for configuration that may vary between e
 
 ### Configuration Files
 
-| File | Purpose | Environment |
-|------|---------|--------------|
-| `application.yml` | Base configuration for local development | Local (`dev` profile implicit) |
-| `application-docker.yml` | Overrides for Docker Compose environment | Docker |
-| `application-prod.yml` | Production-optimized configuration | Production |
-| `.env` | Local environment variables (do not commit) | Local |
-| `.env.example` | Template for required environment variables | Local |
+| File                     | Purpose                                     | Environment                    |
+| ------------------------ | ------------------------------------------- | ------------------------------ |
+| `application.yml`        | Base configuration for local development    | Local (`dev` profile implicit) |
+| `application-docker.yml` | Overrides for Docker Compose environment    | Docker                         |
+| `application-prod.yml`   | Production-optimized configuration          | Production                     |
+| `.env`                   | Local environment variables (do not commit) | Local                          |
+| `.env.example`           | Template for required environment variables | Local                          |
 
 ## Production Profile (prod)
 
@@ -32,14 +62,14 @@ The `prod` profile provides production-optimized configurations for all services
 
 ### What It Optimizes
 
-| Setting | Default | Production | Rationale |
-|---------|---------|------------|-----------|
-| `spring.jpa.hibernate.ddl-auto` | `update` | `validate` | Prevents accidental schema changes in production |
-| `spring.jpa.show-sql` | `false` | `false` | Already disabled in prod |
-| `hibernate.format_sql` | `true` | `false` | Reduces log verbosity |
-| `logging.level.root` | INFO | WARN | Reduces disk I/O and log volume |
-| `logging.level.com.fooddelivery` | DEBUG | INFO | Reduces disk I/O and log volume |
-| `management.endpoints.web.exposure.include` | varies | `health,info,metrics,prometheus` | Only exposes observability endpoints |
+| Setting                                     | Default  | Production                       | Rationale                                        |
+| ------------------------------------------- | -------- | -------------------------------- | ------------------------------------------------ |
+| `spring.jpa.hibernate.ddl-auto`             | `update` | `validate`                       | Prevents accidental schema changes in production |
+| `spring.jpa.show-sql`                       | `false`  | `false`                          | Already disabled in prod                         |
+| `hibernate.format_sql`                      | `true`   | `false`                          | Reduces log verbosity                            |
+| `logging.level.root`                        | INFO     | WARN                             | Reduces disk I/O and log volume                  |
+| `logging.level.com.fooddelivery`            | DEBUG    | INFO                             | Reduces disk I/O and log volume                  |
+| `management.endpoints.web.exposure.include` | varies   | `health,info,metrics,prometheus` | Only exposes observability endpoints             |
 
 ### How to Activate
 
@@ -79,27 +109,27 @@ cp .env.example .env
 
 All environment variables MUST be provided. The application will fail to start if any are missing.
 
-| Variable | Description | Required | Used By |
-|----------|-------------|----------|--------|
-| `GATEWAY_PORT` | API Gateway server port (default: 8080) | Yes | api-gateway |
-| `CUSTOMER_PORT` | Customer service port (default: 8081) | Yes | customer-service |
-| `RESTAURANT_PORT` | Restaurant service port (default: 8082) | Yes | restaurant-service |
-| `ORDER_PORT` | Order service port (default: 8083) | Yes | order-service |
-| `DELIVERY_PORT` | Delivery service port (default: 8084) | Yes | delivery-service |
-| `EUREKA_PORT` | Eureka server port (default: 8761) | Yes | All services (for registration), eureka-server (its own port) |
-| `POSTGRES_HOST` | PostgreSQL server hostname | Yes | All services |
-| `POSTGRES_PORT` | PostgreSQL server port | Yes | All services |
-| `POSTGRES_USER` | PostgreSQL database username | Yes | All services |
-| `POSTGRES_PASSWORD` | PostgreSQL database password | Yes | All services |
-| `DB_PASSWORD` | Alias for POSTGRES_PASSWORD | Yes | All services |
-| `EUREKA_HOST` | Eureka server hostname | Yes | All services |
-| `RABBIT_HOST` | RabbitMQ server hostname | Yes | order-service, delivery-service |
-| `RABBIT_PORT` | RabbitMQ server port | Yes | order-service, delivery-service |
-| `RABBIT_USER` | RabbitMQ username | Yes | order-service, delivery-service |
-| `RABBIT_PASSWORD` | RabbitMQ password | Yes | order-service, delivery-service |
-| `REDIS_HOST` | Redis server hostname | Yes | api-gateway |
-| `REDIS_PORT` | Redis server port | Yes | api-gateway |
-| `JWT_SECRET` | Secret key for JWT token signing (min 32 chars) | Yes | api-gateway, customer-service |
+| Variable            | Description                                     | Required | Used By                                                       |
+| ------------------- | ----------------------------------------------- | -------- | ------------------------------------------------------------- |
+| `GATEWAY_PORT`      | API Gateway server port (default: 8080)         | Yes      | api-gateway                                                   |
+| `CUSTOMER_PORT`     | Customer service port (default: 8081)           | Yes      | customer-service                                              |
+| `RESTAURANT_PORT`   | Restaurant service port (default: 8082)         | Yes      | restaurant-service                                            |
+| `ORDER_PORT`        | Order service port (default: 8083)              | Yes      | order-service                                                 |
+| `DELIVERY_PORT`     | Delivery service port (default: 8084)           | Yes      | delivery-service                                              |
+| `EUREKA_PORT`       | Eureka server port (default: 8761)              | Yes      | All services (for registration), eureka-server (its own port) |
+| `POSTGRES_HOST`     | PostgreSQL server hostname                      | Yes      | All services                                                  |
+| `POSTGRES_PORT`     | PostgreSQL server port                          | Yes      | All services                                                  |
+| `POSTGRES_USER`     | PostgreSQL database username                    | Yes      | All services                                                  |
+| `POSTGRES_PASSWORD` | PostgreSQL database password                    | Yes      | All services                                                  |
+| `DB_PASSWORD`       | Alias for POSTGRES_PASSWORD                     | Yes      | All services                                                  |
+| `EUREKA_HOST`       | Eureka server hostname                          | Yes      | All services                                                  |
+| `RABBIT_HOST`       | RabbitMQ server hostname                        | Yes      | order-service, delivery-service                               |
+| `RABBIT_PORT`       | RabbitMQ server port                            | Yes      | order-service, delivery-service                               |
+| `RABBIT_USER`       | RabbitMQ username                               | Yes      | order-service, delivery-service                               |
+| `RABBIT_PASSWORD`   | RabbitMQ password                               | Yes      | order-service, delivery-service                               |
+| `REDIS_HOST`        | Redis server hostname                           | Yes      | api-gateway                                                   |
+| `REDIS_PORT`        | Redis server port                               | Yes      | api-gateway                                                   |
+| `JWT_SECRET`        | Secret key for JWT token signing (min 32 chars) | Yes      | api-gateway, customer-service                                 |
 
 ### Variable Details
 
@@ -113,6 +143,7 @@ POSTGRES_PASSWORD=your_secure_password_here
 ```
 
 These variables are used by:
+
 - **customer-service**: Connects to `customer_db`
 - **restaurant-service**: Connects to `restaurant_db`
 - **order-service**: Connects to `order_db`
@@ -128,6 +159,7 @@ EUREKA_PORT=8761
 ```
 
 Used by:
+
 - **All services**: Register with Eureka for service discovery
 
 Docker Compose maps `EUREKA_HOST=eureka-server` for service containers.
@@ -142,6 +174,7 @@ RABBIT_PASSWORD=your_secure_password_here
 ```
 
 Used by:
+
 - **order-service**: Publishes and consumes events via RabbitMQ
 - **delivery-service**: Listens for delivery events
 
@@ -155,6 +188,7 @@ REDIS_PORT=6379
 ```
 
 Used by:
+
 - **api-gateway**: Rate limiting and caching
 
 Docker Compose maps `REDIS_HOST=redis` for service containers.
@@ -168,6 +202,7 @@ JWT_SECRET=your_very_long_secure_secret_key_min_32_chars
 **Security Requirement**: Must be at least 32 characters for HMAC-SHA256 signing.
 
 Used by:
+
 - **api-gateway**: Validates JWT tokens on incoming requests
 - **customer-service**: Issues JWT tokens on login
 
@@ -265,3 +300,4 @@ Verify `RABBIT_USER` and `RABBIT_PASSWORD` match the credentials configured in R
 - [Monolith Architecture Analysis](./monolith_architecture.md)
 - [API Gateway Documentation](../api-gateway/README.md)
 - [Service-Specific Documentation](../*/README.md)
+
