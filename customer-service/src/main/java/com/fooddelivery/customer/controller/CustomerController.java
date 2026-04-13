@@ -48,4 +48,10 @@ public class CustomerController {
       @RequestHeader(name = "X-User-Id") Long id, @Valid @RequestBody UpdateCustomerDto dto) {
     return ResponseEntity.ok(customerService.update(id, dto));
   }
+
+  @PutMapping("make-restaurant-owner")
+  public ResponseEntity<Void> makeRestaurantOwner(@PathVariable Long id) {
+    customerService.makeRestaurantOwner(id);
+    return ResponseEntity.noContent().build();
+  }
 }

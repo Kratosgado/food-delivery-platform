@@ -99,6 +99,15 @@ public class CustomerService {
     return CustomerResponseDto.fromEntity(customerRepository.save(customer));
   }
 
+  public void makeRestaurantOwner(Long id) {
+    Customer customer = findOrThrow(id);
+
+    if (customer.getRole() == Customer.Role.CUSTOMER) {
+      customer.setRole(Customer.Role.RESTAURANT_OWNER);
+      customerRepository.save(customer);
+    }
+  }
+
   public Customer findByEmail(String email) {
     return customerRepository
         .findByEmail(email)

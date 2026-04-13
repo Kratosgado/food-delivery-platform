@@ -23,6 +23,7 @@
 ## Tasks & Workflow
 
 - **Monolith Reference**: The source code for the original application is located in `food-delivery-platform-monolith/`. Use this as the reference for migrating business logic, entities, and endpoint behavior into the microservices.
+- **DTOs**: DTOs should be implemented as Java records whenever possible. If a DTO represents an entity within the same service (i.e., not an external DTO from another service), it should include a `public static fromEntity(Entity e)` method to handle mapping (see `CustomerResponseDto` for reference).
 - Before testing or executing code, always ensure you have run the Maven build to trigger necessary codegen (MapStruct).
 - When implementing stubbed methods, map entities to DTOs correctly using MapStruct.
 - No test suite is currently configured. Rely on the compiler (`mvn clean compile`) to verify structural correctness.
