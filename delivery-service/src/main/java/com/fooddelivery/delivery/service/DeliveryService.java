@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service @RequiredArgsConstructor @Transactional @Slf4j
 public class DeliveryService {
@@ -21,14 +22,21 @@ public class DeliveryService {
 
     @Transactional(readOnly = true)
     public DeliveryResponseDto getById(Long id) {
-        return toDto(findOrThrow(id));
+        return DeliveryResponseDto.fromEntity(findOrThrow(id));
     }
 
     @Transactional(readOnly = true)
     public DeliveryResponseDto getByOrderId(Long orderId) {
         Delivery d = deliveryRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Delivery not found for orderId: " + orderId));
-        return toDto(d);
+        return DeliveryResponseDto.fromEntity(d);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DeliveryResponseDto> getByStatus(String status) {
+        Delivery.DeliveryStatus deliveryStatus = Delivery.DeliveryStatus.valueOf(status.toUpperCase());
+        return deliveryRepository.findByStatus(deliveryStatus)
+                .stream().map(DeliveryResponseDto::fromEntity).toList();
     }
 
     public DeliveryResponseDto updateStatus(Long id, UpdateDeliveryStatusDto dto) {
@@ -46,25 +54,24 @@ public class DeliveryService {
 
         Delivery saved = deliveryRepository.save(delivery);
 
-        // Publish event so Order Service (and others) can react
         eventPublisher.publishStatusUpdated(DeliveryStatusUpdatedEvent.builder()
                 .deliveryId(saved.getId()).orderId(saved.getOrderId())
                 .status(saved.getStatus()).driverName(saved.getDriverName())
                 .build());
 
-        return toDto(saved);
+        return DeliveryResponseDto.fromEntity(saved);
+    }
+
+    public DeliveryResponseDto cancelDelivery(Long deliveryId) {
+        Delivery delivery = findOrThrow(deliveryId);
+        delivery.setStatus(Delivery.DeliveryStatus.FAILED);
+        Delivery saved = deliveryRepository.save(delivery);
+        log.info("NOTIFICATION: Delivery #{} cancelled", deliveryId);
+        return DeliveryResponseDto.fromEntity(saved);
     }
 
     private Delivery findOrThrow(Long id) {
         return deliveryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Delivery not found: " + id));
-    }
-
-    private DeliveryResponseDto toDto(Delivery d) {
-        return DeliveryResponseDto.builder()
-                .id(d.getId()).orderId(d.getOrderId()).status(d.getStatus().name())
-                .driverName(d.getDriverName()).deliveryAddress(d.getDeliveryAddress())
-                .assignedAt(d.getAssignedAt()).pickedUpAt(d.getPickedUpAt())
-                .deliveredAt(d.getDeliveredAt()).build();
     }
 }
