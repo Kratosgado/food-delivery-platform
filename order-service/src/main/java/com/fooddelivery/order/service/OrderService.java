@@ -36,34 +36,34 @@ public class OrderService {
   // @CircuitBreaker(name = "restaurantService", fallbackMethod = "placeOrderRestaurantFallback")
   public OrderResponseDto placeOrder(OrderRequestDto dto) {
     // 1. Validate customer via Feign (circuit-breaker protected)
-    CustomerSummaryDto customer = customerClient.getCustomerSummary(dto.getCustomerId());
+    CustomerSummaryDto customer = customerClient.getCustomerSummary(dto.customerId());
     String deliveryAddress =
-        dto.getDeliveryAddress() != null ? dto.getDeliveryAddress() : customer.getDeliveryAddress();
+        dto.deliveryAddress() != null ? dto.deliveryAddress() : customer.deliveryAddress();
 
     // 2. Build order items — validate price via Feign
     Order order =
         Order.builder()
-            .customerId(dto.getCustomerId())
-            .restaurantId(dto.getRestaurantId())
+            .customerId(dto.customerId())
+            .restaurantId(dto.restaurantId())
             .deliveryAddress(deliveryAddress)
             .build();
 
     List<OrderItem> items =
-        dto.getItems().stream()
+        dto.items().stream()
             .map(
                 itemReq -> {
                   MenuItemPriceDto menuItem =
-                      restaurantClient.getMenuItemPrice(itemReq.getMenuItemId());
-                  if (!menuItem.isAvailable()) {
+                      restaurantClient.getMenuItemPrice(itemReq.menuItemId());
+                  if (!menuItem.available()) {
                     throw new IllegalStateException(
-                        "Menu item not available: " + menuItem.getName());
+                        "Menu item not available: " + menuItem.name());
                   }
                   return OrderItem.builder()
                       .order(order)
-                      .menuItemId(menuItem.getId())
-                      .menuItemName(menuItem.getName())
-                      .quantity(itemReq.getQuantity())
-                      .unitPrice(menuItem.getPrice())
+                      .menuItemId(menuItem.id())
+                      .menuItemName(menuItem.name())
+                      .quantity(itemReq.quantity())
+                      .unitPrice(menuItem.price())
                       .build();
                 })
             .toList();
@@ -71,8 +71,8 @@ public class OrderService {
     order.setItems(items);
     order.setTotalAmount(
         items.stream()
-            .map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+            .map(i -> i.getUnitPrice() * i.getQuantity())
+            .reduce(0, Integer::sum));
 
     Order saved = orderRepository.save(order);
 
@@ -153,6 +153,13 @@ public class OrderService {
         .totalAmount(o.getTotalAmount())
         .deliveryAddress(o.getDeliveryAddress())
         .createdAt(o.getCreatedAt())
+        .items(o.getItems().stream().map(i -> OrderResponseDto.OrderItemResponseDto.builder()
+            .menuItemId(i.getMenuItemId())
+            .menuItemName(i.getMenuItemName())
+            .quantity(i.getQuantity())
+            .unitPrice(i.getUnitPrice())
+            .subtotal(i.getUnitPrice() * i.getQuantity())
+            .build()).toList())
         .build();
   }
 }

@@ -1,6 +1,8 @@
 package com.fooddelivery.customer.service;
 
 import com.fooddelivery.customer.dto.*;
+import com.fooddelivery.customer.dto.CustomerDtos.UpdateCustomerDto;
+import com.fooddelivery.customer.exception.DuplicateResourceException;
 import com.fooddelivery.customer.model.Customer;
 import com.fooddelivery.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,66 +15,102 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CustomerService {
 
-    private final CustomerRepository customerRepository;
-    private final PasswordEncoder passwordEncoder;
+  private final CustomerRepository customerRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final com.fooddelivery.customer.util.JwtUtil jwtUtil;
 
-    public CustomerResponseDto register(CustomerRegistrationDto dto) {
-        // TODO: migrate registration logic from monolith CustomerService
-        if (customerRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email already in use: " + dto.getEmail());
-        }
-        Customer customer = Customer.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .email(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
-                .phone(dto.getPhone())
-                .address(dto.getAddress())
-                .build();
-        return toResponseDto(customerRepository.save(customer));
+  public AuthResponseDto login(LoginDto dto) {
+    Customer customer =
+        customerRepository
+            .findByEmail(dto.email())
+            .orElseThrow(
+                () -> new jakarta.persistence.EntityNotFoundException("Customer not found"));
+
+    if (!passwordEncoder.matches(dto.password(), customer.getPassword())) {
+      throw new IllegalArgumentException("Invalid credentials");
     }
 
-    @Transactional(readOnly = true)
-    public CustomerResponseDto getById(Long id) {
-        return toResponseDto(findOrThrow(id));
+    String token =
+        jwtUtil.generateToken(customer.getId(), customer.getEmail(), customer.getRole().name());
+
+    return AuthResponseDto.builder()
+        .token(token)
+        .tokenType("Bearer")
+        .customer(CustomerResponseDto.fromEntity(customer))
+        .build();
+  }
+
+  public AuthResponseDto register(CustomerRegistrationDto dto) {
+
+    if (customerRepository.existsByUsername(dto.username())) {
+      throw new DuplicateResourceException("Username already taken");
+    }
+    if (customerRepository.existsByEmail(dto.email())) {
+      throw new DuplicateResourceException("Email already registered");
     }
 
-    /** Used by Order Service via Feign — returns minimal delivery info */
-    @Transactional(readOnly = true)
-    public CustomerSummaryDto getSummary(Long id) {
-        Customer c = findOrThrow(id);
-        return CustomerSummaryDto.builder()
-                .id(c.getId())
-                .fullName(c.getFirstName() + " " + c.getLastName())
-                .email(c.getEmail())
-                .deliveryAddress(c.getAddress())
-                .build();
-    }
+    Customer customer =
+        Customer.builder()
+            .username(dto.username())
+            .firstName(dto.firstName())
+            .lastName(dto.lastName())
+            .email(dto.email())
+            .password(passwordEncoder.encode(dto.password()))
+            .phone(dto.phone())
+            .deliveryAddress(dto.deliveryAddress())
+            .city(dto.city())
+            .role(Customer.Role.CUSTOMER)
+            .build();
 
-    public CustomerResponseDto update(Long id, CustomerRegistrationDto dto) {
-        // TODO: migrate update logic from monolith
-        Customer customer = findOrThrow(id);
-        customer.setFirstName(dto.getFirstName());
-        customer.setLastName(dto.getLastName());
-        customer.setPhone(dto.getPhone());
-        customer.setAddress(dto.getAddress());
-        return toResponseDto(customerRepository.save(customer));
-    }
+    customerRepository.save(customer);
+    String token = jwtUtil.generateToken(customer.getId(), customer.getRole().name());
+    return AuthResponseDto.builder()
+        .token(token)
+        .tokenType("Bearer")
+        .customer(CustomerResponseDto.fromEntity(customer))
+        .build();
+  }
 
-    public Customer findByEmail(String email) {
-        return customerRepository.findByEmail(email)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Customer not found: " + email));
-    }
+  @Transactional(readOnly = true)
+  public CustomerResponseDto getById(Long id) {
+    return CustomerResponseDto.fromEntity(findOrThrow(id));
+  }
 
-    private Customer findOrThrow(Long id) {
-        return customerRepository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Customer not found: " + id));
-    }
+  /** Used by Order Service via Feign — returns minimal delivery info */
+  @Transactional(readOnly = true)
+  public CustomerSummaryDto getSummary(Long id) {
+    Customer c = findOrThrow(id);
+    return CustomerSummaryDto.builder()
+        .id(c.getId())
+        .fullName(c.getFirstName() + " " + c.getLastName())
+        .email(c.getEmail())
+        .deliveryAddress(c.getDeliveryAddress())
+        .build();
+  }
 
-    private CustomerResponseDto toResponseDto(Customer c) {
-        return CustomerResponseDto.builder()
-                .id(c.getId()).firstName(c.getFirstName()).lastName(c.getLastName())
-                .email(c.getEmail()).phone(c.getPhone()).address(c.getAddress())
-                .role(c.getRole().name()).build();
-    }
+  public CustomerResponseDto update(Long id, UpdateCustomerDto dto) {
+    Customer customer = findOrThrow(id);
+
+    if (dto.firstName() != null) customer.setFirstName(dto.firstName());
+    if (dto.lastName() != null) customer.setLastName(dto.lastName());
+    if (dto.phone() != null) customer.setPhone(dto.phone());
+    if (dto.deliveryAddress() != null) customer.setDeliveryAddress(dto.deliveryAddress());
+    if (dto.city() != null) customer.setCity(dto.city());
+
+    return CustomerResponseDto.fromEntity(customerRepository.save(customer));
+  }
+
+  public Customer findByEmail(String email) {
+    return customerRepository
+        .findByEmail(email)
+        .orElseThrow(
+            () -> new jakarta.persistence.EntityNotFoundException("Customer not found: " + email));
+  }
+
+  private Customer findOrThrow(Long id) {
+    return customerRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new jakarta.persistence.EntityNotFoundException("Customer not found: " + id));
+  }
 }
