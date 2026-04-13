@@ -7,8 +7,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+@EnableFeignClients(clients = com.fooddelivery.restaurant.client.CustomerClient.class)
 public class RestaurantServiceApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(RestaurantServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(RestaurantServiceApplication.class, args);
+  }
 }

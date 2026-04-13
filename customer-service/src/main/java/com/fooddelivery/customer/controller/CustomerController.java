@@ -49,7 +49,7 @@ public class CustomerController {
     return ResponseEntity.ok(customerService.update(id, dto));
   }
 
-  @PutMapping("make-restaurant-owner")
+  @PutMapping("/make-restaurant-owner/{id}")
   public ResponseEntity<Void> makeRestaurantOwner(@PathVariable Long id) {
     customerService.makeRestaurantOwner(id);
     return ResponseEntity.noContent().build();
