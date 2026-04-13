@@ -20,26 +20,26 @@ public class DeliveryEventConsumer {
      */
     @RabbitListener(queues = RabbitMQConfig.ORDER_PLACED_QUEUE)
     public void onOrderPlaced(OrderPlacedEvent event) {
-        log.info("Received OrderPlacedEvent for orderId={}", event.getOrderId());
+        log.info("Received OrderPlacedEvent for orderId={}", event.orderId());
 
-        if (deliveryRepository.findByOrderId(event.getOrderId()).isPresent()) {
-            log.warn("Delivery already exists for orderId={} — skipping (idempotent)", event.getOrderId());
+        if (deliveryRepository.findByOrderId(event.orderId()).isPresent()) {
+            log.warn("Delivery already exists for orderId={} — skipping (idempotent)", event.orderId());
             return;
         }
 
         Delivery delivery = Delivery.builder()
-                .orderId(event.getOrderId())
-                .deliveryAddress(event.getDeliveryAddress())
-                .status(Delivery.DeliveryStatus.PENDING_ASSIGNMENT)
+                .orderId(event.orderId())
+                .deliveryAddress(event.deliveryAddress())
+                .status(Delivery.DeliveryStatus.PENDING)
                 .build();
 
         deliveryRepository.save(delivery);
-        log.info("Created delivery record id={} for orderId={}", delivery.getId(), event.getOrderId());
+        log.info("Created delivery record id={} for orderId={}", delivery.getId(), event.orderId());
     }
 
     @RabbitListener(queues = RabbitMQConfig.ORDER_PLACED_DLQ)
     public void onOrderPlacedDlq(OrderPlacedEvent event) {
-        log.error("DLQ message received for orderId={} — requires manual investigation", event.getOrderId());
+        log.error("DLQ message received for orderId={} — requires manual investigation", event.orderId());
         // TODO: alert / store in dead-letter audit table
     }
 }

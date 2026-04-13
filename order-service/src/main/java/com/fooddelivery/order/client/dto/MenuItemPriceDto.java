@@ -1,13 +1,12 @@
 package com.fooddelivery.order.client.dto;
 
-import lombok.Data;
-import java.math.BigDecimal;
+import lombok.Builder;
 
-@Data
-public class MenuItemPriceDto {
-    private Long id;
-    private String name;
-    private BigDecimal price;
-    private Long restaurantId;
-    private boolean available;
-}
+@Builder
+public record MenuItemPriceDto(
+    Long id,
+    String name,
+    Integer price,
+    Long restaurantId,
+    boolean available
+) {}

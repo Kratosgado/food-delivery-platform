@@ -2,12 +2,12 @@ package com.fooddelivery.customer.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "customers")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Customer {
 
@@ -15,28 +15,46 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
+    @Column(unique = true, nullable = false)
+    private String username;
 
     @Column(unique = true, nullable = false)
     private String email;
 
     @Column(nullable = false)
-    private String password; // stored as BCrypt hash
+    private String password;
 
+    private String firstName;
+    private String lastName;
+
+    @Column(unique = true)
     private String phone;
-    private String address;
+
+    private String deliveryAddress;
+    private String city;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    private Role role = Role.CUSTOMER;
+    private Role role;
 
-    @Builder.Default
-    private boolean active = true;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public enum Role { CUSTOMER, ADMIN }
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (role == null) role = Role.CUSTOMER;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum Role {
+        CUSTOMER, RESTAURANT_OWNER, ADMIN
+    }
 }
