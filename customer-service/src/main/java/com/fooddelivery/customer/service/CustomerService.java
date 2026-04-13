@@ -30,8 +30,7 @@ public class CustomerService {
       throw new IllegalArgumentException("Invalid credentials");
     }
 
-    String token =
-        jwtUtil.generateToken(customer.getId(), customer.getEmail(), customer.getRole().name());
+    String token = jwtUtil.generateToken(customer);
 
     return AuthResponseDto.builder()
         .token(token)
@@ -63,7 +62,7 @@ public class CustomerService {
             .build();
 
     customerRepository.save(customer);
-    String token = jwtUtil.generateToken(customer.getId(), customer.getRole().name());
+    String token = jwtUtil.generateToken(customer);
     return AuthResponseDto.builder()
         .token(token)
         .tokenType("Bearer")
@@ -98,6 +97,15 @@ public class CustomerService {
     if (dto.city() != null) customer.setCity(dto.city());
 
     return CustomerResponseDto.fromEntity(customerRepository.save(customer));
+  }
+
+  public void makeRestaurantOwner(Long id) {
+    Customer customer = findOrThrow(id);
+
+    if (customer.getRole() == Customer.Role.CUSTOMER) {
+      customer.setRole(Customer.Role.RESTAURANT_OWNER);
+      customerRepository.save(customer);
+    }
   }
 
   public Customer findByEmail(String email) {

@@ -1,5 +1,6 @@
 package com.fooddelivery.customer.util;
 
+import com.fooddelivery.customer.model.Customer;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
@@ -21,21 +22,11 @@ public class JwtUtil {
     this.expirationMs = expirationMs;
   }
 
-  public String generateToken(Long userId, String role) {
+  public String generateToken(Customer customer) {
     return Jwts.builder()
-        .subject(String.valueOf(userId))
-        .claim("role", role)
-        .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + expirationMs))
-        .signWith(secretKey)
-        .compact();
-  }
-
-  public String generateToken(Long userId, String email, String role) {
-    return Jwts.builder()
-        .subject(String.valueOf(userId))
-        .claim("email", email)
-        .claim("role", role)
+        .subject(String.valueOf(customer.getId()))
+        .claim("username", customer.getUsername())
+        .claim("role", customer.getRole().name())
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + expirationMs))
         .signWith(secretKey)
