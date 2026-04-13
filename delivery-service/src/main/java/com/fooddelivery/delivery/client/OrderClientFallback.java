@@ -11,9 +11,9 @@ public class OrderClientFallback implements OrderClient {
     public OrderSummaryDto getOrderSummary(Long id) {
         log.warn("OrderService unavailable — returning empty summary for orderId={}", id);
         // Graceful degradation: delivery assignment proceeds without full order enrichment
-        OrderSummaryDto fallback = new OrderSummaryDto();
-        fallback.setId(id);
-        fallback.setStatus("UNKNOWN");
-        return fallback;
+        return OrderSummaryDto.builder()
+                .id(id)
+                .status("UNKNOWN")
+                .build();
     }
 }

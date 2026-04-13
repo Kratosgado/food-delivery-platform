@@ -16,7 +16,7 @@ public class OrderEventPublisher {
     private final RabbitTemplate rabbitTemplate;
 
     public void publishOrderPlaced(OrderPlacedEvent event) {
-        log.info("Publishing OrderPlacedEvent for orderId={}", event.getOrderId());
+        log.info("Publishing OrderPlacedEvent for orderId={}", event.orderId());
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,
                 RabbitMQConfig.ORDER_PLACED_ROUTING_KEY,
@@ -24,7 +24,7 @@ public class OrderEventPublisher {
     }
 
     public void publishOrderCancelled(OrderCancelledEvent event) {
-        log.info("Publishing OrderCancelledEvent for orderId={}", event.getOrderId());
+        log.info("Publishing OrderCancelledEvent for orderId={}", event.orderId());
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,
                 RabbitMQConfig.ORDER_CANCELLED_ROUTING_KEY,
