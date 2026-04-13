@@ -33,11 +33,11 @@ public class DeliveryService {
 
     public DeliveryResponseDto updateStatus(Long id, UpdateDeliveryStatusDto dto) {
         Delivery delivery = findOrThrow(id);
-        delivery.setStatus(dto.getStatus());
-        if (dto.getDriverName() != null) delivery.setDriverName(dto.getDriverName());
-        if (dto.getDriverId()   != null) delivery.setDriverId(dto.getDriverId());
+        delivery.setStatus(dto.status());
+        if (dto.driverName() != null) delivery.setDriverName(dto.driverName());
+        if (dto.driverId()   != null) delivery.setDriverId(dto.driverId());
 
-        switch (dto.getStatus()) {
+        switch (dto.status()) {
             case ASSIGNED    -> delivery.setAssignedAt(LocalDateTime.now());
             case PICKED_UP   -> delivery.setPickedUpAt(LocalDateTime.now());
             case DELIVERED   -> delivery.setDeliveredAt(LocalDateTime.now());
