@@ -1,11 +1,10 @@
 package com.fooddelivery.customer.dto;
 
 import lombok.Builder;
-import lombok.Data;
 
-@Data @Builder
-public class AuthResponseDto {
-    private String token;
-    private String tokenType;
-    private CustomerResponseDto customer;
-}
+@Builder
+public record AuthResponseDto(
+    String token,
+    String tokenType,
+    CustomerResponseDto customer
+) {}
