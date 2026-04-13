@@ -30,8 +30,7 @@ public class CustomerService {
       throw new IllegalArgumentException("Invalid credentials");
     }
 
-    String token =
-        jwtUtil.generateToken(customer.getId(), customer.getEmail(), customer.getRole().name());
+    String token = jwtUtil.generateToken(customer);
 
     return AuthResponseDto.builder()
         .token(token)
@@ -63,7 +62,7 @@ public class CustomerService {
             .build();
 
     customerRepository.save(customer);
-    String token = jwtUtil.generateToken(customer.getId(), customer.getRole().name());
+    String token = jwtUtil.generateToken(customer);
     return AuthResponseDto.builder()
         .token(token)
         .tokenType("Bearer")
