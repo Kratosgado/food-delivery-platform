@@ -5,30 +5,33 @@ import lombok.*;
 
 @Entity
 @Table(name = "order_items")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class OrderItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false)
-    private int quantity;
+  @Column(nullable = false)
+  private int quantity;
 
-    @Column(nullable = false)
-    private Integer unitPrice;
+  @Column(nullable = false)
+  private Integer unitPrice;
 
-    @Column(nullable = false)
-    private Integer subtotal;
+  @Column(nullable = false)
+  private Integer subtotal;
 
-    private String specialInstructions;
+  private String specialInstructions;
 
-    private Long menuItemId;
-    private String menuItemName;
+  private Long menuItemId;
+  private String menuItemName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "order_id", nullable = false)
+  private Order order;
 }
+
