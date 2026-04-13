@@ -12,7 +12,6 @@ public interface CustomerClient {
   @GetMapping("/api/customers/{id}")
   CustomerResponseDto getCustomerById(@PathVariable Long id);
 
-  @PutMapping("/api/customers/{id}/make-restaurant-owner")
+  @PutMapping("/api/customers/make-restaurant-owner/{id}")
   Void makeRestaurantOwner(@PathVariable Long id);
 }
-
