@@ -13,7 +13,6 @@ import com.fooddelivery.order.model.OrderItem;
 import com.fooddelivery.order.repository.OrderRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +33,16 @@ public class OrderService {
 
   @CircuitBreaker(name = "customerService", fallbackMethod = "placeOrderCustomerFallback")
   // @CircuitBreaker(name = "restaurantService", fallbackMethod = "placeOrderRestaurantFallback")
-  public OrderResponseDto placeOrder(OrderRequestDto dto) {
+  public OrderResponseDto placeOrder(Long userId, OrderRequestDto dto) {
     // 1. Validate customer via Feign (circuit-breaker protected)
-    CustomerSummaryDto customer = customerClient.getCustomerSummary(dto.customerId());
+    CustomerSummaryDto customer = customerClient.getCustomerSummary(userId);
     String deliveryAddress =
         dto.deliveryAddress() != null ? dto.deliveryAddress() : customer.deliveryAddress();
 
     // 2. Build order items — validate price via Feign
     Order order =
         Order.builder()
-            .customerId(dto.customerId())
+            .customerId(userId)
             .restaurantId(dto.restaurantId())
             .deliveryAddress(deliveryAddress)
             .build();
@@ -55,8 +54,7 @@ public class OrderService {
                   MenuItemPriceDto menuItem =
                       restaurantClient.getMenuItemPrice(itemReq.menuItemId());
                   if (!menuItem.available()) {
-                    throw new IllegalStateException(
-                        "Menu item not available: " + menuItem.name());
+                    throw new IllegalStateException("Menu item not available: " + menuItem.name());
                   }
                   return OrderItem.builder()
                       .order(order)
@@ -70,9 +68,7 @@ public class OrderService {
 
     order.setItems(items);
     order.setTotalAmount(
-        items.stream()
-            .map(i -> i.getUnitPrice() * i.getQuantity())
-            .reduce(0, Integer::sum));
+        items.stream().map(i -> i.getUnitPrice() * i.getQuantity()).reduce(0, Integer::sum));
 
     Order saved = orderRepository.save(order);
 
@@ -105,6 +101,27 @@ public class OrderService {
   @Transactional(readOnly = true)
   public OrderResponseDto getById(Long id) {
     return toResponseDto(findOrThrow(id));
+  }
+
+  @Transactional(readOnly = true)
+  public List<OrderResponseDto> getCustomerOrders(Long customerId) {
+    return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+        .map(this::toResponseDto)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<OrderResponseDto> getRestaurantOrders(Long restaurantId) {
+    return orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId).stream()
+        .map(this::toResponseDto)
+        .toList();
+  }
+
+  public OrderResponseDto updateOrderStatus(Long id, String status) {
+    Order order = findOrThrow(id);
+    order.setStatus(Order.OrderStatus.valueOf(status.toUpperCase()));
+    order.setUpdatedAt(LocalDateTime.now());
+    return toResponseDto(orderRepository.save(order));
   }
 
   /** Consumed by Delivery Service via Feign */
@@ -144,7 +161,6 @@ public class OrderService {
   }
 
   private OrderResponseDto toResponseDto(Order o) {
-    // TODO: complete mapping — migrate from monolith OrderService
     return OrderResponseDto.builder()
         .id(o.getId())
         .customerId(o.getCustomerId())
@@ -153,13 +169,18 @@ public class OrderService {
         .totalAmount(o.getTotalAmount())
         .deliveryAddress(o.getDeliveryAddress())
         .createdAt(o.getCreatedAt())
-        .items(o.getItems().stream().map(i -> OrderResponseDto.OrderItemResponseDto.builder()
-            .menuItemId(i.getMenuItemId())
-            .menuItemName(i.getMenuItemName())
-            .quantity(i.getQuantity())
-            .unitPrice(i.getUnitPrice())
-            .subtotal(i.getUnitPrice() * i.getQuantity())
-            .build()).toList())
+        .items(
+            o.getItems().stream()
+                .map(
+                    i ->
+                        OrderResponseDto.OrderItemResponseDto.builder()
+                            .menuItemId(i.getMenuItemId())
+                            .menuItemName(i.getMenuItemName())
+                            .quantity(i.getQuantity())
+                            .unitPrice(i.getUnitPrice())
+                            .subtotal(i.getUnitPrice() * i.getQuantity())
+                            .build())
+                .toList())
         .build();
   }
 }
