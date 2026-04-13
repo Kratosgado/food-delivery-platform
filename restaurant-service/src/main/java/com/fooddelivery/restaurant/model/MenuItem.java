@@ -2,11 +2,14 @@ package com.fooddelivery.restaurant.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "menu_items")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class MenuItem {
 
@@ -20,11 +23,12 @@ public class MenuItem {
     private String description;
 
     @Column(nullable = false)
-    private Integer price;
+    private BigDecimal price;
 
     private String category;
 
-    private boolean available;
+    @Builder.Default
+    private boolean available = true;
 
     private String imageUrl;
 
@@ -34,6 +38,7 @@ public class MenuItem {
 
     @PrePersist
     protected void onCreate() {
-        available = true;
+        if (price == null) price = BigDecimal.ZERO;
+        if (!available) available = true;
     }
 }
