@@ -30,9 +30,7 @@ public class LoggingAspect {
     String currentExecution = className + "." + methodName;
 
     log.info(
-        "Enter: {}({}) with arguments[s] = {}",
-        currentExecution,
-        Arrays.toString(joinPoint.getArgs()));
+        "Enter: {} with arguments[s] = {}", currentExecution, Arrays.toString(joinPoint.getArgs()));
 
     long startTime = System.currentTimeMillis();
     Object result = joinPoint.proceed();

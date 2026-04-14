@@ -62,6 +62,7 @@ public class OrderService {
                       .menuItemName(menuItem.name())
                       .quantity(itemReq.quantity())
                       .unitPrice(menuItem.price())
+                      .subtotal(menuItem.price() * itemReq.quantity())
                       .build();
                 })
             .toList();
