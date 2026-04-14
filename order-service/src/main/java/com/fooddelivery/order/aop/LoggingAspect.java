@@ -29,7 +29,7 @@ public class LoggingAspect {
     String currentExecution = className + "." + methodName;
 
     log.info(
-        ">>>>> Enter: {}({}) with arguments[s] = {}",
+        ">>>>> Enter: {} with arguments[s] = {}",
         currentExecution,
         Arrays.toString(joinPoint.getArgs()));
     long startTime = System.currentTimeMillis();
@@ -45,4 +45,3 @@ public class LoggingAspect {
     return result;
   }
 }
-
