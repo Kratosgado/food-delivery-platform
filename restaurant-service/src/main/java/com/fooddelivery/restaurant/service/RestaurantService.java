@@ -2,6 +2,7 @@ package com.fooddelivery.restaurant.service;
 
 import com.fooddelivery.restaurant.client.CustomerClient;
 import com.fooddelivery.restaurant.dto.*;
+import com.fooddelivery.restaurant.exception.UnauthorizedException;
 import com.fooddelivery.restaurant.mapper.MenuItemMapper;
 import com.fooddelivery.restaurant.model.*;
 import com.fooddelivery.restaurant.repository.*;
@@ -156,11 +157,5 @@ public class RestaurantService {
         menuItems.size(),
         r.getOwnerId(),
         menuItems);
-  }
-
-  public static class UnauthorizedException extends RuntimeException {
-    public UnauthorizedException(String message) {
-      super(message);
-    }
   }
 }
