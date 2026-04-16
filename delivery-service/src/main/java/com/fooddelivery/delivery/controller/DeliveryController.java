@@ -31,7 +31,7 @@ public class DeliveryController {
     return ResponseEntity.ok(deliveryService.getByStatus(status));
   }
 
-  @PatchMapping("/{id}/status")
+  @PutMapping("/{id}/status")
   public ResponseEntity<DeliveryResponseDto> updateStatus(
       @PathVariable Long id, @Valid @RequestBody UpdateDeliveryStatusDto dto) {
     return ResponseEntity.ok(deliveryService.updateStatus(id, dto));
