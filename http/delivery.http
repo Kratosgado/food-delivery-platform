@@ -1,12 +1,25 @@
+### 
+
 @base_url = http://localhost:8080
+@delivery_id = 1
 @jwt_token = <your_token_here>
 @order_id = 1
-@delivery_id = 1
+
 
 ### Get Delivery by Order
-GET {{base_url}}/api/deliveries/order/{{order_id}}
+
+# @name get_delivery
+
+GET {{base_url}}/api/deliveries/order/{{place_order.response.body.id}} HTTP/1.1
 Authorization: Bearer {{jwt_token}}
 
+
 ### Update Delivery Status
-PATCH {{base_url}}/api/deliveries/{{delivery_id}}/status?status=PICKED_UP
+
+PUT {{base_url}}/api/deliveries/{{get_delivery.response.body.id}} HTTP/1.1
 Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "status": "DELIVERED"
+}
