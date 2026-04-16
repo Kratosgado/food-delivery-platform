@@ -1,0 +1,39 @@
+### 
+
+@base_url = http://localhost:8080
+@jwt_token = <your_token_here>
+@menu_item_id = 1
+@order_id = 1
+@restaurant_id = 1
+
+
+### Place Order
+
+# @name place_order
+
+POST {{base_url}}/api/orders HTTP/1.1
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{menu_item_id}}",
+      "quantity": 2
+    }
+  ],
+  "restaurantId": "{{restaurant_id}}",
+  "specialInstructions": "Extra pepper please"
+}
+
+
+### Get Order Status
+
+GET {{base_url}}/api/orders/{{place_order.response.body.id}} HTTP/1.1
+Authorization: Bearer {{jwt_token}}
+
+
+### Cancel Order
+
+PATCH {{base_url}}/api/orders/{{place_order.response.body.id}}/cancel HTTP/1.1
+Authorization: Bearer {{jwt_token}}

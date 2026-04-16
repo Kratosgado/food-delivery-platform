@@ -1,0 +1,38 @@
+@base_url = http://localhost:8080
+@jwt_token = <your_token_here>
+@restaurant_id = 1
+
+### List Restaurants
+GET {{base_url}}/api/restaurants/search/all
+Authorization: Bearer {{jwt_token}}
+
+### Create Restaurant (Admin)
+POST {{base_url}}/api/restaurants
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "name": "Mama's Kitchen",
+  "description": "Traditional Nigerian cuisine",
+  "cuisineType": "Nigerian",
+  "address": "45 Marina Road",
+  "city": "Lagos",
+  "phone": "+234-1-555-0200",
+  "estimatedDeliveryMinutes": 35
+}
+
+### Add Menu Item (Admin)
+POST {{base_url}}/api/restaurants/{{restaurant_id}}/menu
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "name": "Jollof Rice",
+  "description": "Smoky party-style jollof",
+  "price": 2500.00,
+  "category": "Main"
+}
+
+### Get Menu
+GET {{base_url}}/api/restaurants/{{restaurant_id}}/menu
+Authorization: Bearer {{jwt_token}}
