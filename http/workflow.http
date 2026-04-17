@@ -1,0 +1,136 @@
+### 
+
+@base_url = http://localhost:8080
+
+
+### Register Customer
+
+# @name register
+
+POST {{base_url}}/api/customers/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "city": "Lagos",
+  "deliveryAddress": "123 Main St",
+  "email": "john_{{$timestamp}}@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "password": "password123",
+  "phone": "+1-555-0109",
+  "username": "john_{{$timestamp}}"
+}
+
+
+### Login
+
+# @name login
+
+POST {{base_url}}/api/customers/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "{{register.request.body.email}}",
+  "password": "password123"
+}
+
+
+### Get Profile
+
+# @name profile
+
+GET {{base_url}}/api/customers/me HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+
+### Update Address
+
+# @name updateAddress
+
+PUT {{base_url}}/api/customers/me HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "city": "Abuja",
+  "deliveryAddress": "456 New St"
+}
+
+
+### Create Restaurant (Admin)
+
+# @name createRestaurant
+
+POST {{base_url}}/api/restaurants HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "address": "45 Marina Road",
+  "city": "Lagos",
+  "cuisineType": "Nigerian",
+  "description": "Traditional Nigerian cuisine",
+  "estimatedDeliveryMinutes": 35,
+  "name": "Mama's Kitchen {{$timestamp}}",
+  "phone": "+234-1-555-0200"
+}
+
+
+### Add Menu Item (Admin)
+
+# @name addMenuItem
+
+POST {{base_url}}/api/restaurants/{{createRestaurant.response.body.id}}/menu HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "category": "Main",
+  "description": "Smoky party-style jollof",
+  "name": "Jollof Rice",
+  "price": 2500.00
+}
+
+
+### Place Order
+
+# @name placeOrder
+
+POST {{base_url}}/api/orders HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{addMenuItem.response.body.id}}",
+      "quantity": 2
+    }
+  ],
+  "restaurantId": "{{createRestaurant.response.body.id}}",
+  "specialInstructions": "Extra pepper please"
+}
+
+
+### Get Delivery by Order
+
+# @name getDelivery
+
+GET {{base_url}}/api/deliveries/order/{{placeOrder.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+
+### Update Delivery Status
+
+# @name updateDelivery
+
+PATCH {{base_url}}/api/deliveries/{{getDelivery.response.body.id}}/status?status=PICKED_UP HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+
+### Cancel Order
+
+# @name cancelOrder
+
+PATCH {{base_url}}/api/orders/{{placeOrder.response.body.id}}/cancel HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}

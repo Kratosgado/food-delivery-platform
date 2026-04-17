@@ -1,0 +1,41 @@
+### 
+
+@base_url = http://localhost:8080
+
+
+### Register Customer
+
+POST {{base_url}}/api/customers/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "city": "Lagos",
+  "deliveryAddress": "123 Main St",
+  "email": "john@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "password": "password123",
+  "phone": "+1-555-0100",
+  "username": "john"
+}
+
+
+### Login
+
+
+### 
+
+# @name login
+
+POST {{base_url}}/api/customers/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+> {%
+  const token = response.body.token;
+  client.global.set("jwt_token", token);
+%}
