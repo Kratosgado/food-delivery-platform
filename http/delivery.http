@@ -16,7 +16,7 @@ Authorization: Bearer {{jwt_token}}
 
 ### Update Delivery Status
 
-PUT {{base_url}}/api/deliveries/{{get_delivery.response.body.id}} HTTP/1.1
+PUT {{base_url}}/api/deliveries/{{get_delivery.response.body.id}}/status HTTP/1.1
 Authorization: Bearer {{jwt_token}}
 Content-Type: application/json
 
