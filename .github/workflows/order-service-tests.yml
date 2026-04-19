@@ -17,7 +17,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_DB: order_db
           POSTGRES_USER: postgres
@@ -29,6 +29,19 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        options: >-
+          --health-cmd rabbitmq-diagnostics\ -q\ ping
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5672:5672
 
     steps:
       - uses: actions/checkout@v4
