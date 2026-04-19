@@ -110,9 +110,9 @@ class CustomerServiceTest {
         new CustomerRegistrationDto(
             USERNAME,
             "john@example.com",
+            PASSWORD,
             "John",
             "Doe",
-            PASSWORD,
             "1234567890",
             "123 Main St",
             "New York");
@@ -126,6 +126,7 @@ class CustomerServiceTest {
             invocation -> {
               Customer c = invocation.getArgument(0);
               c.setId(CUSTOMER_ID);
+              c.setRole(Customer.Role.CUSTOMER);
               return c;
             });
 
@@ -251,6 +252,7 @@ class CustomerServiceTest {
             .phone("1234567890")
             .deliveryAddress("123 Main St")
             .city("New York")
+            .role(Customer.Role.CUSTOMER)
             .build();
 
     UpdateCustomerDto updateDto =
@@ -287,6 +289,7 @@ class CustomerServiceTest {
             .phone("1234567890")
             .deliveryAddress("123 Main St")
             .city("New York")
+            .role(Customer.Role.CUSTOMER)
             .build();
 
     UpdateCustomerDto updateDto = new UpdateCustomerDto("Jane", null, null, null, null);

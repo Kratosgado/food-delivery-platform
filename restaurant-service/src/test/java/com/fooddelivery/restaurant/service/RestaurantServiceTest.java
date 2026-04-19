@@ -262,12 +262,8 @@ class RestaurantServiceTest {
             .description("Original description")
             .build();
 
-    MenuItemRequestDto updateRequest =
-        MenuItemRequestDto.builder()
-            .name("Premium Margherita")
-            .price(18)
-            .description("Updated description")
-            .build();
+    var updateRequest =
+        new MenuItemRequestDto("Premium Margherita", "Updated description", 18, null, null);
 
     when(menuItemRepository.findById(MENU_ITEM_ID)).thenReturn(Optional.of(menuItem));
     when(menuItemRepository.save(menuItem)).thenReturn(menuItem);
@@ -287,7 +283,7 @@ class RestaurantServiceTest {
     MenuItem menuItem =
         MenuItem.builder().id(MENU_ITEM_ID).restaurant(restaurant).name("Pizza").build();
 
-    MenuItemRequestDto updateRequest = MenuItemRequestDto.builder().name("Updated Pizza").build();
+    var updateRequest = new MenuItemRequestDto("Updated pizza", null, null, null, null);
 
     when(menuItemRepository.findById(MENU_ITEM_ID)).thenReturn(Optional.of(menuItem));
 

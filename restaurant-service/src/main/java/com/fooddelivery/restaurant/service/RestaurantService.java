@@ -2,7 +2,6 @@ package com.fooddelivery.restaurant.service;
 
 import com.fooddelivery.restaurant.client.CustomerClient;
 import com.fooddelivery.restaurant.dto.*;
-import com.fooddelivery.restaurant.exception.UnauthorizedException;
 import com.fooddelivery.restaurant.mapper.MenuItemMapper;
 import com.fooddelivery.restaurant.model.*;
 import com.fooddelivery.restaurant.repository.*;
@@ -63,11 +62,7 @@ public class RestaurantService {
 
   public MenuItemResponseDto addMenuItem(
       Long restaurantId, Long ownerId, MenuItemRequestDto request) {
-    Restaurant restaurant = findOrThrow(restaurantId);
-
-    if (!restaurant.getOwnerId().equals(ownerId)) {
-      throw new UnauthorizedException("You don't own this restaurant");
-    }
+    Restaurant restaurant = findWithOwnerOrThrow(restaurantId, ownerId);
 
     MenuItem menuItem = menuItemMapper.toEntity(request, restaurant);
     MenuItem saved = menuItemRepository.save(menuItem);
@@ -84,12 +79,8 @@ public class RestaurantService {
   public MenuItemResponseDto updateMenuItem(Long itemId, Long ownerId, MenuItemRequestDto request) {
     MenuItem item =
         menuItemRepository
-            .findById(itemId)
+            .findByIdAndRestaurantOwnerId(itemId, ownerId)
             .orElseThrow(() -> new EntityNotFoundException("MenuItem not found: " + itemId));
-
-    if (!item.getRestaurant().getOwnerId().equals(ownerId)) {
-      throw new UnauthorizedException("You don't own this restaurant");
-    }
 
     if (request.name() != null) item.setName(request.name());
     if (request.description() != null) item.setDescription(request.description());
@@ -102,12 +93,8 @@ public class RestaurantService {
   public void toggleMenuItemAvailability(Long itemId, Long ownerId) {
     MenuItem item =
         menuItemRepository
-            .findById(itemId)
+            .findByIdAndRestaurantOwnerId(itemId, ownerId)
             .orElseThrow(() -> new EntityNotFoundException("MenuItem not found: " + itemId));
-
-    if (!item.getRestaurant().getOwnerId().equals(ownerId)) {
-      throw new UnauthorizedException("You don't own this restaurant");
-    }
 
     item.setAvailable(!item.isAvailable());
     menuItemRepository.save(item);
@@ -128,6 +115,12 @@ public class RestaurantService {
         .orElseThrow(() -> new EntityNotFoundException("Restaurant not found: " + id));
   }
 
+  private Restaurant findWithOwnerOrThrow(Long id, Long ownerId) {
+    return restaurantRepository
+        .findByIdAndOwnerId(id, ownerId)
+        .orElseThrow(() -> new EntityNotFoundException("Restaurant not found: " + id));
+  }
+
   private RestaurantResponseDto toDto(Restaurant r) {
     List<MenuItemResponseDto> menuItems =
         menuItemRepository.findByRestaurantIdAndAvailableTrue(r.getId()).stream()
@@ -143,19 +136,6 @@ public class RestaurantService {
       }
     }
 
-    return new RestaurantResponseDto(
-        r.getId(),
-        r.getName(),
-        r.getDescription(),
-        r.getCuisineType(),
-        r.getAddress(),
-        r.getCity(),
-        r.getPhone(),
-        r.isActive(),
-        r.getRating(),
-        r.getEstimatedDeliveryMinutes(),
-        menuItems.size(),
-        r.getOwnerId(),
-        menuItems);
+    return RestaurantResponseDto.fromEntity(r, menuItems);
   }
 }
