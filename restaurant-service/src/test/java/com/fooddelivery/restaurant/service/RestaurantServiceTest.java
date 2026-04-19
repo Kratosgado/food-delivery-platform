@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fooddelivery.restaurant.client.CustomerClient;
+import com.fooddelivery.restaurant.client.dto.CustomerResponseDto;
 import com.fooddelivery.restaurant.dto.*;
 import com.fooddelivery.restaurant.exception.UnauthorizedException;
 import com.fooddelivery.restaurant.mapper.MenuItemMapper;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -155,20 +155,22 @@ class RestaurantServiceTest {
   @DisplayName("should create restaurant successfully")
   void testCreateRestaurantSuccess() {
     RestaurantRequestDto requestDto =
-        RestaurantRequestDto.builder()
-            .name(RESTAURANT_NAME)
-            .description("Great Italian food")
-            .cuisineType(CUISINE_TYPE)
-            .address("123 Main St")
-            .city(CITY)
-            .phone("5551234567")
-            .estimatedDeliveryMinutes(30)
-            .build();
+        new RestaurantRequestDto(
+            RESTAURANT_NAME,
+            "Great Italian food",
+            CUISINE_TYPE,
+            "123 Main St",
+            CITY,
+            "5551234567",
+            30,
+            null);
 
     Restaurant restaurant = requestDto.toEntity(OWNER_ID);
 
     when(customerClient.getCustomerById(OWNER_ID))
-        .thenReturn(new CustomerResponseDto(OWNER_ID, "owner", "owner@example.com", "CUSTOMER"));
+        .thenReturn(
+            new CustomerResponseDto(
+                OWNER_ID, "owner", "owner@example.com", "CUSTOMER", null, null, null, null, null));
     when(restaurantRepository.save(any(Restaurant.class))).thenReturn(restaurant);
 
     RestaurantResponseDto result = restaurantService.createRestaurant(OWNER_ID, requestDto);
@@ -184,19 +186,10 @@ class RestaurantServiceTest {
   @DisplayName("should add menu item to restaurant")
   void testAddMenuItemSuccess() {
     Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .name(RESTAURANT_NAME)
-            .ownerId(OWNER_ID)
-            .build();
+        Restaurant.builder().id(RESTAURANT_ID).name(RESTAURANT_NAME).ownerId(OWNER_ID).build();
 
-    MenuItemRequestDto itemRequest =
-        MenuItemRequestDto.builder()
-            .name("Margherita Pizza")
-            .description("Classic pizza")
-            .price(15)
-            .category("Pizza")
-            .build();
+    var itemRequest =
+        new MenuItemRequestDto("Margherita Pizza", "Classic pizza", 1500, "Pizza", null);
 
     MenuItem menuItem =
         MenuItem.builder()
@@ -204,7 +197,7 @@ class RestaurantServiceTest {
             .restaurant(restaurant)
             .name("Margherita Pizza")
             .description("Classic pizza")
-            .price(15)
+            .price(1500)
             .category("Pizza")
             .available(true)
             .build();
@@ -213,7 +206,8 @@ class RestaurantServiceTest {
     when(menuItemMapper.toEntity(itemRequest, restaurant)).thenReturn(menuItem);
     when(menuItemRepository.save(menuItem)).thenReturn(menuItem);
 
-    MenuItemResponseDto result = restaurantService.addMenuItem(RESTAURANT_ID, OWNER_ID, itemRequest);
+    MenuItemResponseDto result =
+        restaurantService.addMenuItem(RESTAURANT_ID, OWNER_ID, itemRequest);
 
     assertThat(result).isNotNull();
     assertThat(result.name()).isEqualTo("Margherita Pizza");
@@ -224,22 +218,13 @@ class RestaurantServiceTest {
   @DisplayName("should throw exception when non-owner tries to add menu item")
   void testAddMenuItemUnauthorized() {
     Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .name(RESTAURANT_NAME)
-            .ownerId(OWNER_ID)
-            .build();
+        Restaurant.builder().id(RESTAURANT_ID).name(RESTAURANT_NAME).ownerId(OWNER_ID).build();
 
-    MenuItemRequestDto itemRequest =
-        MenuItemRequestDto.builder()
-            .name("Pizza")
-            .price(15)
-            .build();
+    var itemRequest = new MenuItemRequestDto("Pizza", null, 1500, null, null);
 
     when(restaurantRepository.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurant));
 
-    assertThatThrownBy(
-            () -> restaurantService.addMenuItem(RESTAURANT_ID, 999L, itemRequest))
+    assertThatThrownBy(() -> restaurantService.addMenuItem(RESTAURANT_ID, 999L, itemRequest))
         .isInstanceOf(UnauthorizedException.class)
         .hasMessageContaining("You don't own this restaurant");
 
@@ -249,21 +234,9 @@ class RestaurantServiceTest {
   @Test
   @DisplayName("should retrieve restaurant menu")
   void testGetMenu() {
-    MenuItem item1 =
-        MenuItem.builder()
-            .id(1L)
-            .name("Pizza")
-            .price(15)
-            .available(true)
-            .build();
+    MenuItem item1 = MenuItem.builder().id(1L).name("Pizza").price(15).available(true).build();
 
-    MenuItem item2 =
-        MenuItem.builder()
-            .id(2L)
-            .name("Pasta")
-            .price(12)
-            .available(true)
-            .build();
+    MenuItem item2 = MenuItem.builder().id(2L).name("Pasta").price(12).available(true).build();
 
     when(menuItemRepository.findByRestaurantIdAndAvailableTrue(RESTAURANT_ID))
         .thenReturn(List.of(item1, item2));
@@ -278,11 +251,7 @@ class RestaurantServiceTest {
   @DisplayName("should update menu item successfully")
   void testUpdateMenuItemSuccess() {
     Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .name(RESTAURANT_NAME)
-            .ownerId(OWNER_ID)
-            .build();
+        Restaurant.builder().id(RESTAURANT_ID).name(RESTAURANT_NAME).ownerId(OWNER_ID).build();
 
     MenuItem menuItem =
         MenuItem.builder()
@@ -313,28 +282,16 @@ class RestaurantServiceTest {
   @Test
   @DisplayName("should throw exception when non-owner tries to update menu item")
   void testUpdateMenuItemUnauthorized() {
-    Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .ownerId(OWNER_ID)
-            .build();
+    Restaurant restaurant = Restaurant.builder().id(RESTAURANT_ID).ownerId(OWNER_ID).build();
 
     MenuItem menuItem =
-        MenuItem.builder()
-            .id(MENU_ITEM_ID)
-            .restaurant(restaurant)
-            .name("Pizza")
-            .build();
+        MenuItem.builder().id(MENU_ITEM_ID).restaurant(restaurant).name("Pizza").build();
 
-    MenuItemRequestDto updateRequest =
-        MenuItemRequestDto.builder()
-            .name("Updated Pizza")
-            .build();
+    MenuItemRequestDto updateRequest = MenuItemRequestDto.builder().name("Updated Pizza").build();
 
     when(menuItemRepository.findById(MENU_ITEM_ID)).thenReturn(Optional.of(menuItem));
 
-    assertThatThrownBy(
-            () -> restaurantService.updateMenuItem(MENU_ITEM_ID, 999L, updateRequest))
+    assertThatThrownBy(() -> restaurantService.updateMenuItem(MENU_ITEM_ID, 999L, updateRequest))
         .isInstanceOf(UnauthorizedException.class)
         .hasMessageContaining("You don't own this restaurant");
 
@@ -344,11 +301,7 @@ class RestaurantServiceTest {
   @Test
   @DisplayName("should toggle menu item availability")
   void testToggleMenuItemAvailability() {
-    Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .ownerId(OWNER_ID)
-            .build();
+    Restaurant restaurant = Restaurant.builder().id(RESTAURANT_ID).ownerId(OWNER_ID).build();
 
     MenuItem menuItem =
         MenuItem.builder()
@@ -369,11 +322,7 @@ class RestaurantServiceTest {
   @Test
   @DisplayName("should throw exception when non-owner toggles menu item availability")
   void testToggleMenuItemAvailabilityUnauthorized() {
-    Restaurant restaurant =
-        Restaurant.builder()
-            .id(RESTAURANT_ID)
-            .ownerId(OWNER_ID)
-            .build();
+    Restaurant restaurant = Restaurant.builder().id(RESTAURANT_ID).ownerId(OWNER_ID).build();
 
     MenuItem menuItem =
         MenuItem.builder()
@@ -385,8 +334,7 @@ class RestaurantServiceTest {
 
     when(menuItemRepository.findById(MENU_ITEM_ID)).thenReturn(Optional.of(menuItem));
 
-    assertThatThrownBy(
-            () -> restaurantService.toggleMenuItemAvailability(MENU_ITEM_ID, 999L))
+    assertThatThrownBy(() -> restaurantService.toggleMenuItemAvailability(MENU_ITEM_ID, 999L))
         .isInstanceOf(UnauthorizedException.class)
         .hasMessageContaining("You don't own this restaurant");
 
@@ -397,20 +345,10 @@ class RestaurantServiceTest {
   @DisplayName("should retrieve menu item price")
   void testGetMenuItemPrice() {
     MenuItem menuItem =
-        MenuItem.builder()
-            .id(MENU_ITEM_ID)
-            .name("Pizza")
-            .price(15)
-            .available(true)
-            .build();
+        MenuItem.builder().id(MENU_ITEM_ID).name("Pizza").price(15).available(true).build();
 
     MenuItemPriceDto priceDto =
-        MenuItemPriceDto.builder()
-            .id(MENU_ITEM_ID)
-            .name("Pizza")
-            .price(15)
-            .available(true)
-            .build();
+        MenuItemPriceDto.builder().id(MENU_ITEM_ID).name("Pizza").price(15).available(true).build();
 
     when(menuItemRepository.findById(MENU_ITEM_ID)).thenReturn(Optional.of(menuItem));
     when(menuItemMapper.toPriceDto(menuItem)).thenReturn(priceDto);

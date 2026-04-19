@@ -91,11 +91,7 @@ class CustomerServiceTest {
   @DisplayName("should throw exception when password is incorrect")
   void testLoginInvalidPassword() {
     Customer customer =
-        Customer.builder()
-            .id(CUSTOMER_ID)
-            .email(EMAIL)
-            .password(ENCODED_PASSWORD)
-            .build();
+        Customer.builder().id(CUSTOMER_ID).email(EMAIL).password(ENCODED_PASSWORD).build();
 
     LoginDto loginDto = new LoginDto(EMAIL, PASSWORD);
 
@@ -112,7 +108,14 @@ class CustomerServiceTest {
   void testRegisterSuccess() {
     CustomerRegistrationDto registrationDto =
         new CustomerRegistrationDto(
-            USERNAME, "john@example.com", "John", "Doe", PASSWORD, "1234567890", "123 Main St", "New York");
+            USERNAME,
+            "john@example.com",
+            "John",
+            "Doe",
+            PASSWORD,
+            "1234567890",
+            "123 Main St",
+            "New York");
 
     when(customerRepository.existsByUsername(USERNAME)).thenReturn(false);
     when(customerRepository.existsByEmail(EMAIL)).thenReturn(false);
@@ -146,7 +149,14 @@ class CustomerServiceTest {
   void testRegisterDuplicateUsername() {
     CustomerRegistrationDto registrationDto =
         new CustomerRegistrationDto(
-            USERNAME, "john@example.com", "John", "Doe", PASSWORD, "1234567890", "123 Main St", "New York");
+            USERNAME,
+            "john@example.com",
+            "John",
+            "Doe",
+            PASSWORD,
+            "1234567890",
+            "123 Main St",
+            "New York");
 
     when(customerRepository.existsByUsername(USERNAME)).thenReturn(true);
 
@@ -260,7 +270,7 @@ class CustomerServiceTest {
     assertThat(result.firstName()).isEqualTo("Jane");
     assertThat(result.lastName()).isEqualTo("Smith");
     assertThat(result.phone()).isEqualTo("9876543210");
-    assertThat(result.deliveryAddress()).isEqualTo("456 Elm St");
+    assertThat(result.address()).isEqualTo("456 Elm St");
     assertThat(result.city()).isEqualTo("Boston");
 
     verify(customerRepository).save(customer);
@@ -299,11 +309,7 @@ class CustomerServiceTest {
   @Test
   @DisplayName("should promote customer to restaurant owner")
   void testMakeRestaurantOwner() {
-    Customer customer =
-        Customer.builder()
-            .id(CUSTOMER_ID)
-            .role(Customer.Role.CUSTOMER)
-            .build();
+    Customer customer = Customer.builder().id(CUSTOMER_ID).role(Customer.Role.CUSTOMER).build();
 
     when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(customer));
 
@@ -317,10 +323,7 @@ class CustomerServiceTest {
   @DisplayName("should not change role if already restaurant owner")
   void testMakeRestaurantOwnerAlreadyOwner() {
     Customer customer =
-        Customer.builder()
-            .id(CUSTOMER_ID)
-            .role(Customer.Role.RESTAURANT_OWNER)
-            .build();
+        Customer.builder().id(CUSTOMER_ID).role(Customer.Role.RESTAURANT_OWNER).build();
 
     when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(customer));
 
@@ -333,11 +336,7 @@ class CustomerServiceTest {
   @Test
   @DisplayName("should find customer by email")
   void testFindByEmailSuccess() {
-    Customer customer =
-        Customer.builder()
-            .id(CUSTOMER_ID)
-            .email(EMAIL)
-            .build();
+    Customer customer = Customer.builder().id(CUSTOMER_ID).email(EMAIL).build();
 
     when(customerRepository.findByEmail(EMAIL)).thenReturn(Optional.of(customer));
 

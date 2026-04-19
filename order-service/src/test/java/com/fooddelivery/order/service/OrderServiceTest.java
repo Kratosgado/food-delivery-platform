@@ -48,10 +48,9 @@ class OrderServiceTest {
   @Test
   @DisplayName("should place order successfully with valid customer and menu items")
   void testPlaceOrderSuccess() {
-    OrderRequestDto.OrderItemRequestDto itemRequest =
-        new OrderRequestDto.OrderItemRequestDto(MENU_ITEM_ID, 2);
-    OrderRequestDto orderRequest =
-        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St");
+    var itemRequest = new OrderRequestDto.OrderItemDto(MENU_ITEM_ID, 2, null);
+    var orderRequest =
+        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St", null);
 
     CustomerSummaryDto customer =
         CustomerSummaryDto.builder()
@@ -76,7 +75,7 @@ class OrderServiceTest {
             .restaurantId(RESTAURANT_ID)
             .deliveryAddress("123 Main St")
             .totalAmount(30)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .createdAt(LocalDateTime.now())
             .items(
                 List.of(
@@ -112,9 +111,8 @@ class OrderServiceTest {
   @Test
   @DisplayName("should use customer delivery address when not provided")
   void testPlaceOrderUsesCustomerDeliveryAddress() {
-    OrderRequestDto.OrderItemRequestDto itemRequest =
-        new OrderRequestDto.OrderItemRequestDto(MENU_ITEM_ID, 1);
-    OrderRequestDto orderRequest = new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), null);
+    var itemRequest = new OrderRequestDto.OrderItemDto(MENU_ITEM_ID, 1, null);
+    var orderRequest = new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), null, null);
 
     CustomerSummaryDto customer =
         CustomerSummaryDto.builder()
@@ -134,7 +132,7 @@ class OrderServiceTest {
             .restaurantId(RESTAURANT_ID)
             .deliveryAddress("456 Elm St")
             .totalAmount(20)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .createdAt(LocalDateTime.now())
             .items(
                 List.of(
@@ -159,10 +157,9 @@ class OrderServiceTest {
   @Test
   @DisplayName("should throw exception when menu item not available")
   void testPlaceOrderMenuItemUnavailable() {
-    OrderRequestDto.OrderItemRequestDto itemRequest =
-        new OrderRequestDto.OrderItemRequestDto(MENU_ITEM_ID, 1);
-    OrderRequestDto orderRequest =
-        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St");
+    var itemRequest = new OrderRequestDto.OrderItemDto(MENU_ITEM_ID, 1, null);
+    var orderRequest =
+        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St", null);
 
     CustomerSummaryDto customer =
         CustomerSummaryDto.builder()
@@ -191,10 +188,9 @@ class OrderServiceTest {
   @Test
   @DisplayName("should throw ServiceUnavailableException when customer service unavailable")
   void testPlaceOrderCustomerServiceUnavailable() {
-    OrderRequestDto.OrderItemRequestDto itemRequest =
-        new OrderRequestDto.OrderItemRequestDto(MENU_ITEM_ID, 1);
-    OrderRequestDto orderRequest =
-        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St");
+    var itemRequest = new OrderRequestDto.OrderItemDto(MENU_ITEM_ID, 1, null);
+    var orderRequest =
+        new OrderRequestDto(RESTAURANT_ID, List.of(itemRequest), "123 Main St", null);
 
     when(customerClient.getCustomerSummary(CUSTOMER_ID))
         .thenThrow(new RuntimeException("Service unavailable"));
@@ -212,7 +208,7 @@ class OrderServiceTest {
             .id(ORDER_ID)
             .customerId(CUSTOMER_ID)
             .restaurantId(RESTAURANT_ID)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .totalAmount(50)
             .deliveryAddress("123 Main St")
             .createdAt(LocalDateTime.now())
@@ -275,7 +271,7 @@ class OrderServiceTest {
         Order.builder()
             .id(ORDER_ID)
             .customerId(CUSTOMER_ID)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .build();
 
     Order updatedOrder =
@@ -303,7 +299,7 @@ class OrderServiceTest {
             .id(ORDER_ID)
             .customerId(CUSTOMER_ID)
             .restaurantId(RESTAURANT_ID)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .totalAmount(100)
             .deliveryAddress("123 Main St")
             .build();
@@ -326,7 +322,7 @@ class OrderServiceTest {
         Order.builder()
             .id(ORDER_ID)
             .customerId(CUSTOMER_ID)
-            .status(Order.OrderStatus.PENDING)
+            .status(Order.OrderStatus.PLACED)
             .build();
 
     Order cancelledOrder =
