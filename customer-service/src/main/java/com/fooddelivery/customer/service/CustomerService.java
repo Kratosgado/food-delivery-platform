@@ -48,21 +48,12 @@ public class CustomerService {
       throw new DuplicateResourceException("Email already registered");
     }
 
-    Customer customer =
-        Customer.builder()
-            .username(dto.username())
-            .firstName(dto.firstName())
-            .lastName(dto.lastName())
-            .email(dto.email())
-            .password(passwordEncoder.encode(dto.password()))
-            .phone(dto.phone())
-            .deliveryAddress(dto.deliveryAddress())
-            .city(dto.city())
-            .role(Customer.Role.CUSTOMER)
-            .build();
+    var customer = dto.toEntity();
+    customer.setPassword(passwordEncoder.encode(dto.password()));
 
-    customerRepository.save(customer);
-    String token = jwtUtil.generateToken(customer);
+    var saved = customerRepository.save(customer);
+
+    String token = jwtUtil.generateToken(saved);
     return AuthResponseDto.builder()
         .token(token)
         .tokenType("Bearer")

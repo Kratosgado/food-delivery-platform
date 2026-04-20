@@ -2,7 +2,6 @@ package com.fooddelivery.restaurant.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "menu_items")
@@ -13,32 +12,30 @@ import java.math.BigDecimal;
 @Builder
 public class MenuItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    private String description;
+  private String description;
 
-    @Column(nullable = false)
-    private BigDecimal price;
+  @Column(nullable = false)
+  private Integer price;
 
-    private String category;
+  private String category;
 
-    @Builder.Default
-    private boolean available = true;
+  @Builder.Default private boolean available = true;
 
-    private String imageUrl;
+  private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "restaurant_id", nullable = false)
+  private Restaurant restaurant;
 
-    @PrePersist
-    protected void onCreate() {
-        if (price == null) price = BigDecimal.ZERO;
-        if (!available) available = true;
-    }
+  @PrePersist
+  protected void onCreate() {
+    if (!available) available = true;
+  }
 }

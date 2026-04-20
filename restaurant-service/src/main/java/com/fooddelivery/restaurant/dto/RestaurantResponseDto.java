@@ -19,21 +19,27 @@ public record RestaurantResponseDto(
     int menuItemCount,
     Long ownerId,
     List<MenuItemResponseDto> menuItems) {
-  public static RestaurantResponseDto fromEntity(Restaurant restaurant) {
+
+  public static RestaurantResponseDto fromEntity(
+      Restaurant r, List<MenuItemResponseDto> menuItems) {
     return RestaurantResponseDto.builder()
-        .id(restaurant.getId())
-        .name(restaurant.getName())
-        .description(restaurant.getDescription())
-        .cuisineType(restaurant.getCuisineType())
-        .address(restaurant.getAddress())
-        .city(restaurant.getCity())
-        .phone(restaurant.getPhone())
-        .active(restaurant.isActive())
-        .rating(restaurant.getRating())
-        .estimatedDeliveryMinutes(restaurant.getEstimatedDeliveryMinutes())
-        .menuItemCount(0)
-        .ownerId(restaurant.getOwnerId())
-        .menuItems(null)
+        .id(r.getId())
+        .name(r.getName())
+        .description(r.getDescription())
+        .cuisineType(r.getCuisineType())
+        .address(r.getAddress())
+        .city(r.getCity())
+        .phone(r.getPhone())
+        .active(r.isActive())
+        .rating(r.getRating())
+        .estimatedDeliveryMinutes(r.getEstimatedDeliveryMinutes())
+        .menuItemCount(menuItems.size())
+        .ownerId(r.getOwnerId())
+        .menuItems(menuItems)
         .build();
+  }
+
+  public static RestaurantResponseDto fromEntity(Restaurant r) {
+    return fromEntity(r, List.of());
   }
 }

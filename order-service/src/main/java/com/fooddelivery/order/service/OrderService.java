@@ -83,7 +83,7 @@ public class OrderService {
             .totalAmount(saved.getTotalAmount())
             .build());
 
-    return toResponseDto(saved);
+    return OrderResponseDto.fromEntity(saved);
   }
 
   // Circuit breaker fallback methods
@@ -101,20 +101,20 @@ public class OrderService {
 
   @Transactional(readOnly = true)
   public OrderResponseDto getById(Long id) {
-    return toResponseDto(findOrThrow(id));
+    return OrderResponseDto.fromEntity(findOrThrow(id));
   }
 
   @Transactional(readOnly = true)
   public List<OrderResponseDto> getCustomerOrders(Long customerId) {
     return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
-        .map(this::toResponseDto)
+        .map(OrderResponseDto::fromEntity)
         .toList();
   }
 
   @Transactional(readOnly = true)
   public List<OrderResponseDto> getRestaurantOrders(Long restaurantId) {
     return orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId).stream()
-        .map(this::toResponseDto)
+        .map(OrderResponseDto::fromEntity)
         .toList();
   }
 
@@ -122,7 +122,7 @@ public class OrderService {
     Order order = findOrThrow(id);
     order.setStatus(Order.OrderStatus.valueOf(status.toUpperCase()));
     order.setUpdatedAt(LocalDateTime.now());
-    return toResponseDto(orderRepository.save(order));
+    return OrderResponseDto.fromEntity(orderRepository.save(order));
   }
 
   /** Consumed by Delivery Service via Feign */
@@ -152,36 +152,12 @@ public class OrderService {
             .orderId(saved.getId())
             .customerId(saved.getCustomerId())
             .build());
-    return toResponseDto(saved);
+    return OrderResponseDto.fromEntity(saved);
   }
 
   private Order findOrThrow(Long id) {
     return orderRepository
         .findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Order not found: " + id));
-  }
-
-  private OrderResponseDto toResponseDto(Order o) {
-    return OrderResponseDto.builder()
-        .id(o.getId())
-        .customerId(o.getCustomerId())
-        .restaurantId(o.getRestaurantId())
-        .status(o.getStatus().name())
-        .totalAmount(o.getTotalAmount())
-        .deliveryAddress(o.getDeliveryAddress())
-        .createdAt(o.getCreatedAt())
-        .items(
-            o.getItems().stream()
-                .map(
-                    i ->
-                        OrderResponseDto.OrderItemResponseDto.builder()
-                            .menuItemId(i.getMenuItemId())
-                            .menuItemName(i.getMenuItemName())
-                            .quantity(i.getQuantity())
-                            .unitPrice(i.getUnitPrice())
-                            .subtotal(i.getUnitPrice() * i.getQuantity())
-                            .build())
-                .toList())
-        .build();
   }
 }
