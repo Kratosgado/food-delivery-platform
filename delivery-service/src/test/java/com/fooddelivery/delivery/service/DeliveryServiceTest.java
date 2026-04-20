@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -111,18 +110,10 @@ class DeliveryServiceTest {
   @DisplayName("should retrieve deliveries by status")
   void testGetByStatus() {
     Delivery delivery1 =
-        Delivery.builder()
-            .id(1L)
-            .orderId(100L)
-            .status(Delivery.DeliveryStatus.PENDING)
-            .build();
+        Delivery.builder().id(1L).orderId(100L).status(Delivery.DeliveryStatus.PENDING).build();
 
     Delivery delivery2 =
-        Delivery.builder()
-            .id(2L)
-            .orderId(101L)
-            .status(Delivery.DeliveryStatus.PENDING)
-            .build();
+        Delivery.builder().id(2L).orderId(101L).status(Delivery.DeliveryStatus.PENDING).build();
 
     when(deliveryRepository.findByStatus(Delivery.DeliveryStatus.PENDING))
         .thenReturn(List.of(delivery1, delivery2));
@@ -130,7 +121,7 @@ class DeliveryServiceTest {
     List<DeliveryResponseDto> result = deliveryService.getByStatus("PENDING");
 
     assertThat(result).hasSize(2);
-    assertThat(result).allMatch(d -> d.status() == Delivery.DeliveryStatus.PENDING);
+    assertThat(result).allMatch(d -> d.status().equals(Delivery.DeliveryStatus.PENDING.name()));
 
     verify(deliveryRepository).findByStatus(Delivery.DeliveryStatus.PENDING);
   }

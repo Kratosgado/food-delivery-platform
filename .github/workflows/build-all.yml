@@ -2,16 +2,22 @@ name: Build All Services
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [ order-service, customer-service, restaurant-service, delivery-service ]
+        service:
+          [
+            order-service,
+            customer-service,
+            restaurant-service,
+            delivery-service,
+          ]
 
     services:
       postgres:
@@ -34,8 +40,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
           cache: maven
 
       - name: Build ${{ matrix.service }}
@@ -69,27 +75,14 @@ jobs:
         ports:
           - 5432:5432
 
-      rabbitmq:
-        image: rabbitmq:3.13-management-alpine
-        env:
-          RABBITMQ_DEFAULT_USER: guest
-          RABBITMQ_DEFAULT_PASS: guest
-        options: >-
-          --health-cmd rabbitmq-diagnostics\ -q\ ping
-          --health-interval 15s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5672:5672
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
           cache: maven
 
       - name: Run all tests
@@ -100,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all-services-test-results
-          path: '**/target/surefire-reports/'
+          path: "**/target/surefire-reports/"
           retention-days: 30
 
       - name: Comment PR with test results
