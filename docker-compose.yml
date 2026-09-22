@@ -1,3 +1,5 @@
+name: food-delivery-platform
+
 networks:
   food-delivery-net:
     driver: bridge
